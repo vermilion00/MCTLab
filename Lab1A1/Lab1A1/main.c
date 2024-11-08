@@ -8,6 +8,7 @@
 #include <xc.h>
 #include <util/delay.h>
 #include "lcd.h"
+#include <stdio.h>
 
 #define DEBOUNCE 10
 
@@ -18,35 +19,34 @@
 void aufgabe1(void);
 void aufgabe2(void);
 void aufgabe3(void);
+void aufgabe4(void);
 
 uint8_t count = 0;
+uint8_t currentcount = 0;
 short flag = 0;
 short debounce = 0;
 
-char TransmitBuffer[10];
+char TransmitBuffer[20] = {0};
 
 
 int main(void)
 {
-	/* TODO: Change PORT to the actual ports that the LEDs and Switches are connected to */
 	//Set LED port as Output
 	DDRB = 0xFF;
 	//Set Switch port as Input
 	DDRD = 0x00;
 		
-	aufgabe1();
+	//aufgabe1();
 	//aufgabe2();
-	//aufgabe3();
+	aufgabe3();
 }
 
 void aufgabe1(void){
 	while(1){
 		//Set the LED port to be equal to the Switch Port
-		/*TODO: Check if the Switch is active low (STK500 docs) and LED is active low (lab docs) (should be) 
-				If not, inversion might be necessary */
 		//PORT D is the Switch port
 		//PORT B is the LED port
-		PORTB = ~PIND;
+		PORTB = PIND;
 	}
 }
 
@@ -79,8 +79,7 @@ void aufgabe2(void){
 		flag = 0;
 		
 		//Output the count on the LEDs
-		/*TODO: Check if inversion is needed */
-		PORTB = count;
+		PORTB = ~count;
 	}
 }
 
@@ -88,6 +87,7 @@ void aufgabe3(void){
 	//Initialize the LCD with invisible cursor
 	lcd_init(LCD_DISP_ON);
 	lcd_clrscr();
+	lcd_puts("Count = 0");
 	
 	while(1){
 		//Check for negative edge on Sw0, since Switches are active low
@@ -115,15 +115,19 @@ void aufgabe3(void){
 		flag = 0;
 		
 		//Output the count on the LEDs
-		PORTB = count;
+		PORTB = ~count;
 		
-		//Output the count on the Display
-		//Clear screen
-		lcd_clrscr();
-		//Convert count to String
-		sprintf(TransmitBuffer, "%s", count);
-		//Output count on Display
-		lcd_puts(TransmitBuffer);
+		//Check if the count has changed
+		if(currentcount != count){
+			//Output the count on the Display
+			//Clear screen
+			lcd_clrscr();
+			//Convert count to String
+			sprintf(TransmitBuffer, "Count %i", count);
+			//Output count on Display
+			lcd_puts(TransmitBuffer);
+			currentcount = count;
+		}
 	}
 }
 
@@ -174,8 +178,7 @@ void aufgabe2(void){
 		debounce = 0;
 		
 		//Output the count on the LEDs
-		/*TODO: Check if inversion is needed */
-		PORTB = count;
+		PORTB = ~count;
 	}
 }
 
@@ -183,6 +186,7 @@ void aufgabe3(void){
 	//Initialize the LCD with invisible cursor
 	lcd_init(LCD_DISP_ON);
 	lcd_clrscr();
+	lcd_puts("Count = 0");
 	
 	while(1){
 		//Check for negative edge on Sw0, since Switches are active low
@@ -228,15 +232,19 @@ void aufgabe3(void){
 		debounce = 0;
 		
 		//Output the count on the LEDs
-		PORTB = count;
+		PORTB = ~count;
 		
-		//Output the count on the Display
-		//Clear screen
-		lcd_clrscr();
-		//Convert count to String
-		sprintf(TransmitBuffer, "%s", count);
-		//Output count on Display
-		lcd_puts(TransmitBuffer);
+		//Check if the count has changed
+		if(currentcount != count){
+			//Output the count on the Display
+			//Clear screen
+			lcd_clrscr();
+			//Convert count to String
+			sprintf(TransmitBuffer, "Count = %i", count);
+			//Output count on Display
+			lcd_puts(TransmitBuffer);
+			currentcount = count;
+		}
 	}
 }
 #endif
