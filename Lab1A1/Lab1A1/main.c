@@ -114,6 +114,9 @@ void aufgabe3(void){
 		//reset the flag
 		flag = 0;
 		
+		//Output the count on the LEDs
+		PORTB = count;
+		
 		//Output the count on the Display
 		//Clear screen
 		lcd_clrscr();
@@ -223,6 +226,9 @@ void aufgabe3(void){
 		flag = 0;
 		//reset the "key debounced" flag
 		debounce = 0;
+		
+		//Output the count on the LEDs
+		PORTB = count;
 		
 		//Output the count on the Display
 		//Clear screen
