@@ -273,3 +273,38 @@ void aufgabe3(void){
 }
 //End of the "Debounce activated" check
 #endif
+
+/*
+Fragen:
+
+a)
+Die Taster haben keine Entprellung. Die leitenden Kontakte schließen beim Betätigen
+nicht sofort, sondern springen eine Zeit lang (bis ca. 10 ms bei schlechten
+Kontakten) hin und her. Dabei öffnet und schließt sich der elektrische Kontakt
+wiederholt, weshalb der Mikrokontroller ein wiederholtes Betätigen des Tasters
+auffasst. Dagegen kann in Hardware oder Software vorgegangen werden, z.B. indem ein
+kleiner Kondensator an den Taster und GND gelegt wird, oder nach der ersten
+steigenden (bei active high) bzw. fallenden (bei active low) Flanke eine gewisse
+Zeit (normalerweise 5-20 ms) gewartet wird, bevor der Taster erneut abgefragt wird,
+und nur das Ergebnis der zweiten Abfrage weiterverwendet wird.
+
+b)
+Bits maskieren bedeutet, in einem Register ein Bit zu ändern oder abzufragen, ohne
+die restlichen Bits kennen zu müssen.
+Beispiel: Zeile 63 im Programmcode
+
+while((~PIND) & (1 << PD0)){
+
+	In der Zeile wird durch ~PIND die im Register gespeicherten Werte gelesen und
+	invertiert. Als Beispiel wird hier angenommen, dass im Register der Wert 01111110
+	gespeichert ist. Im rechten Teil der Zeile wird eine 1 um 0 stellen nach links
+	geschoben, da PD0 dem nullten Bit im Register entspricht. Der Daraus resultierende
+	Wert ist 00000001. Die restlichen Nullen werden automatisch aufgefüllt, da der Wert
+	durch das "&" mit einem 8-Bit-Wert verglichen wird. Da der in PIND gespeicherte Wert
+	durch die Invertierung als 10000001 gelesen wird, kann die Zeile zu
+	while((10000001) & (00000001)){ vereinfacht werden.
+		Das Ergebnis des Vergleichs (10000001 & 00000001) ist 00000001. Im Kontext der
+		Aufgabe bedeutet das, dass der erste Taster (mit Index Null) gedrückt ist.
+		Durch die Bitmaske "& (1 << PD0)" kann also abgefragt werden, ob der Wert von PD0
+		eins ist, ohne gleichzeitig den Wert der anderen Bits im Register abzufragen.
+*/
