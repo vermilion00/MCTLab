@@ -1,17 +1,16 @@
-/*
- * main.c
- *
- * Created: 11/7/2024 6:43:37 PM
- *  Author: z004e6he
- */ 
-
 #include <xc.h>
 #include <util/delay.h>
 #include "lcd.h"
 #include <stdio.h>
 
+/* I didn't know how bad the switch chatter would be initially, so I decided to
+   implement a simple debounce algorithm. Exercises 2 and 3 are duplicated, with
+   the first version not having the debounce logic incorporated. */
+
+//Set the debounce time in milliseconds, or comment out to disable debouncing   
 #define DEBOUNCE 10
 
+//Set the CPU frequency, needed for the _delay_ms function
 #ifndef F_CPU
 	#define F_CPU 16000000UL
 #endif
@@ -21,19 +20,25 @@ void aufgabe2(void);
 void aufgabe3(void);
 void aufgabe4(void);
 
+//Counts the current number
 uint8_t count = 0;
+//Stores the count value for comparison
 uint8_t currentcount = 0;
+//Flag equals 1 if the switch has been pressed
 short flag = 0;
+//Flag equals 1 if the switch has been debounced
 short debounce = 0;
-
+//Stores the output message of the sprintf function
 char TransmitBuffer[20] = {0};
 
 
 int main(void)
 {
-	//Set LED port as Output
+	//No infinite loop, as those are included in the individual functions
+	
+	//Set entire LED register as Output
 	DDRB = 0xFF;
-	//Set Switch port as Input
+	//Set entire Switch register as Input
 	DDRD = 0x00;
 		
 	//aufgabe1();
@@ -75,10 +80,12 @@ void aufgabe2(void){
 				count--;
 			}
 		}
-		//reset the flag
+		//reset the key pressed flag
 		flag = 0;
 		
-		//Output the count on the LEDs
+		//Output the count on the LEDs. Since the LEDs and the switches have
+		//opposing logic, an inversion is needed. 
+		
 		PORTB = ~count;
 	}
 }
@@ -111,15 +118,15 @@ void aufgabe3(void){
 				count--;
 			}
 		}
-		//reset the flag
+		//reset the key pressed flag
 		flag = 0;
 		
-		//Output the count on the LEDs
+		//Output the count on the LEDs. Since the LEDs and the switches have
+		//opposing logic, an inversion is needed. 
 		PORTB = ~count;
 		
 		//Check if the count has changed
 		if(currentcount != count){
-			//Output the count on the Display
 			//Clear screen
 			lcd_clrscr();
 			//Convert count to String
@@ -139,12 +146,16 @@ void aufgabe2(void){
 		while((~PIND) & (1 << PD0)){
 			//Wait for 10 ms if switch hasn't been debounced yet
 			if(debounce == 0){
+				//Wait for the specified time
 				_delay_ms(DEBOUNCE);
+				//Set the "key debounced" flag
 				debounce = 1;
+				//Restart from the inner while loop
 				continue;
 			} else {
 				//only register switch once per keypress
 				if(flag == 0){
+					//Set the "key pressed" flag
 					flag = 1;
 					//Increment the counter
 					count++;
@@ -160,12 +171,16 @@ void aufgabe2(void){
 		while((~PIND) & (1 << PD7)){
 			//Wait for 10 ms if switch hasn't been debounced yet
 			if(debounce == 0){
+				//Wait for the specified time
 				_delay_ms(DEBOUNCE);
+				//Set the "key debounced" flag
 				debounce = 1;
+				//Restart from the inner while loop
 				continue;
 			} else {
 				//only register switch once per keypress
 				if(flag == 0){
+					//Set the "key pressed" flag
 					flag = 1;
 					//Decrement the counter
 					count--;
@@ -177,7 +192,8 @@ void aufgabe2(void){
 		//reset the "key debounced" flag
 		debounce = 0;
 		
-		//Output the count on the LEDs
+		//Output the count on the LEDs. Since the LEDs and the switches have
+		//opposing logic, an inversion is needed. 
 		PORTB = ~count;
 	}
 }
@@ -193,12 +209,16 @@ void aufgabe3(void){
 		while((~PIND) & (1 << PD0)){
 			//Wait for 10 ms if switch hasn't been debounced yet
 			if(debounce == 0){
+				//Wait for the specified time
 				_delay_ms(DEBOUNCE);
+				//Set the "key debounced" flag
 				debounce = 1;
+				//Restart from the inner while loop
 				continue;
 			} else {
 				//only register switch once per keypress
 				if(flag == 0){
+					//Set the "key pressed" flag
 					flag = 1;
 					//Increment the counter
 					count++;
@@ -214,12 +234,16 @@ void aufgabe3(void){
 		while((~PIND) & (1 << PD7)){
 			//Wait for 10 ms if switch hasn't been debounced yet
 			if(debounce == 0){
+				//Wait for the specified time
 				_delay_ms(DEBOUNCE);
+				//Set the "key debounced" flag
 				debounce = 1;
+				//Restart from the inner while loop
 				continue;
 			} else {
 				//only register switch once per keypress
 				if(flag == 0){
+					//Set the "key pressed" flag
 					flag = 1;
 					//Decrement the counter
 					count--;
@@ -231,12 +255,12 @@ void aufgabe3(void){
 		//reset the "key debounced" flag
 		debounce = 0;
 		
-		//Output the count on the LEDs
+		//Output the count on the LEDs. Since the LEDs and the switches have
+		//opposing logic, an inversion is needed. 
 		PORTB = ~count;
 		
 		//Check if the count has changed
 		if(currentcount != count){
-			//Output the count on the Display
 			//Clear screen
 			lcd_clrscr();
 			//Convert count to String
@@ -247,5 +271,5 @@ void aufgabe3(void){
 		}
 	}
 }
+//End of the "Debounce activated" check
 #endif
-	
