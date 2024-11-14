@@ -43,10 +43,10 @@ void aufgabe2(void){
 			PORTB |= (1 << i);
 			
 			//Wait 200 ms = 50000 counts at /64 prescaler
-			//Load Timer1 in normal mode with /64 prescaler, Timer starts immediately
-			TCCR1B = (1 << CS11) | (1 << CS10);
 			//Overflow value, (2^16 - 1) - 50000 counts
 			TCNT1 = 0x3CAF;
+			//Load Timer1 in normal mode with /64 prescaler, Timer starts immediately
+			TCCR1B = (1 << CS11) | (1 << CS10);
 			//Wait until Timer 1 Overflow is detected
 			while(!(TIFR & (1 << TOV1)));
 			//Deactivate Timer 1
