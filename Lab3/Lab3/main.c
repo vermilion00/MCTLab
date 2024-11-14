@@ -25,6 +25,8 @@ int main(void){
 	//INT1 = SW3 = PD3
     DDRD = 0x00;
 	
+	//Enable Interrupts globally
+	sei();
 	//Enable Interrupt 0 and 1
 	GICR |= (1 << INT0) | (1 << INT1);
 	//Set the Interrupt to check for falling edge
