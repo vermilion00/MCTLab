@@ -11,7 +11,7 @@ uint8_t sw2_flag = 0;
 //"Switch 3 pressed" flag set by ISR
 uint8_t sw3_flag = 0;
 //"Timer 1 finished" flag set by ISR
-uint8_t timer_finished = 0;
+uint8_t timer_running = 0;
 //Stores the counter
 int count = 0;
 //Stores count to check if display needs to update
@@ -76,17 +76,21 @@ void aufgabe1(void){
 
 void aufgabe2(void){
 	while(1){
-		//Enable Timer 1 Overflow Interrupt
-		TIMSK = (1 << TOIE1);
-		//Set overflow value for 500ms timer
-		//31250 counts at /256 prescaler
-		TCNT1 = 0x85EE; //34286
-		//Start Timer 1 with /256 prescaler
-		TCCR1B = (1 << CS12);
-		//Deactivate Timer 1 (Check if necessary)
-		TCCR1B = 0;
-		//Clear Timer 1 Overflow flag
-		TIFR &= ~(1 << TOV1);
+		if(!timer_running){
+			//Set the timer running flag
+			timer_running = 1;
+			//Enable Timer 1 Overflow Interrupt
+			TIMSK = (1 << TOIE1);
+			//Set overflow value for 500ms timer
+			//31250 counts at /256 prescaler
+			TCNT1 = 0x85EE; //34286
+			//Start Timer 1 with /256 prescaler
+			TCCR1B = (1 << CS12);
+			//Deactivate Timer 1 (Check if necessary)
+			TCCR1B = 0;
+			//Clear Timer 1 Overflow flag
+			TIFR &= ~(1 << TOV1);
+		}
 	}
 }
 
@@ -110,4 +114,24 @@ ISR(INT1_vect){
 ISR(TIMER1_OVF_vect){
 	//Toggle LED 0 each time the ISR is called
 	PORTB ^= (1 << 0);
+	//Reset the timer running flag
+	timer_running = 0;
 }
+
+/*
+Fragen:
+
+a)
+Interrupts können nur durch andere Interrupts mit einer höheren Priorität
+unterbrochen werden, ansonsten wird zuerst die ISR abgearbeitet und danach
+mit dem nächsten Interrupt weitergemacht. Wenn in der ISR lange Berechnungen
+ablaufen, kann es dazu führen, dass wichtige Signale verzögert wargenommen
+werden. Dies kann umgangen werden, indem man nur "Flags" in den ISRs setzt,
+und in der Main loop den Status der Flags abfragt.
+
+b)
+Wenn der zweite Interrupt eine höhere Priorität hat, wird die erste ISR
+unterbrochen und die zweite zuerst ausgeführt, und erst danach mit der
+ersten ISR weitergemacht. Ansonsten wartet die zweite ISR, bis die erste
+ausgeführt wurde.
+*/
