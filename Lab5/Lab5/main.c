@@ -1,12 +1,12 @@
+//Set the CPU frequency, needed for the _delay_ms function
+#ifndef F_CPU
+	#define F_CPU 16000000UL
+#endif
+
 #include <xc.h>
 #include "lcd.h"
 #include <stdio.h>
 #include <util/delay.h>
-
-//Set the CPU frequency, needed for the _delay_ms function
-#ifndef F_CPU
-#define F_CPU 16000000UL
-#endif
 
 void aufgabe1(void);
 void aufgabe2(void);
@@ -217,7 +217,8 @@ Fragen:
 
 a)
 Ja, wenn die Batteriespannung als Referenzspannung des ADCs verwendet
-wird oder die Referenzspannung von der Batteriespannung abhängt.
+wird oder die Referenzspannung von der Batteriespannung abhängt
+(z.B. durch einen Spannungsteiler).
 Da die Batteriespannung mit dem Ladestand sinkt, und die Referenzspannung
 die obere Grenze des Messbereichs bestimmt, würde der ADC bei der selben
 anliegenden Spannung einen höheren Wert zurückliefern, je niedriger der
