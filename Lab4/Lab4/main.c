@@ -1,12 +1,12 @@
-#include <xc.h>
-#include <util/delay.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
 //Set the CPU frequency, needed for the _delay_ms function
 #ifndef F_CPU
 	#define F_CPU 16000000UL
 #endif
+
+#include <xc.h>
+#include <util/delay.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 void aufgabe1(void);
 void aufgabe2(void);
@@ -30,14 +30,17 @@ int main(void)
 	
 	//Enable all interrupts
 	/*TODO: Check if this enables all interrupts or just
-	allows for them to happen*/
+	allows for them to happen (Probably 2)*/
 	sei();
 	//Sw2 = 5% duty cycle, Sw3 = 7,5% duty cycle
 	//Enable Interrupt 0 and 1
 	GICR |= (1 << INT0) | (1 << INT1);
-	//Set the Interrupt to check for falling edge
+	//Set Interrupt 0 to check for falling edge
 	MCUCR |= (1 << ISC01);
 	MCUCR &= ~(1 << ISC00);
+	//Set Interrupt 1 to check for falling edge
+	MCUCR |= (1 << ISC11);
+	MCUCR &= ~(1 << ISC10);
 	
 	aufgabe1();
 	//aufgabe2();
@@ -75,13 +78,15 @@ void aufgabe2(void){
 	TCCR1B |= (1 << WGM13) | (1 << WGM12);
 	//Enable CTC Interrupt
 	TIMSK |= (1 << OCIE1A);
+	//Start timer with /64 prescaler
+	TCCR1B |= (1 << CS11) | (1 << CS10);
 	
+	/*TODO: DO more in the ISR? */
 	while(1){
 		if(pwm_active && !timer_running){
 			//Load the active time length into the CCR
+			/*TODO: Are floats allowed here? */
 			ICR1 = 250.0 * duty_cycle - 1;
-			//Start timer with /64 prescaler
-			TCCR1B |= (1 << CS11) | (1 << CS10);
 			//Activate Pin D5
 			PORTD |= (1 << 5);
 			//Reset the active phase flag
@@ -93,8 +98,6 @@ void aufgabe2(void){
 			//Load the timer value into the CC register
 			//250 counts per ms with /64 prescaler
 			ICR1 = 250 * (20.0 - duty_cycle) - 1;
-			//Start timer with /64 prescaler
-			TCCR1B |= (1 << CS11) | (1 << CS10);
 			//Deactivate Pin D5
 			PORTD &= ~(1 << 5);
 			//Set the active phase flag
@@ -105,7 +108,6 @@ void aufgabe2(void){
 	}
 }
 
-//Timer FastPWM mode
 /*TODO: Check if COMPA is correct */
 ISR(TIMER1_COMPA_vect){
 	//Reset the timer running flag
