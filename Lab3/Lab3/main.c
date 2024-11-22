@@ -2,6 +2,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "lcd.h"
+#include <stdio.h>
 
 void aufgabe1(void);
 void aufgabe2(void);
@@ -29,12 +30,17 @@ int main(void){
 	sei();
 	//Enable Interrupt 0 and 1
 	GICR |= (1 << INT0) | (1 << INT1);
-	//Set the Interrupt to check for falling edge
+	//Set Interrupt 0 to check for falling edge
 	MCUCR |= (1 << ISC01);
 	MCUCR &= ~(1 << ISC00);
+	//Set Interrupt 1 to check for falling edge
+	MCUCR |= (1 << ISC11);
+	MCUCR &= ~(1 << ISC10);
 	
 	//Set the LED 1 pin as Output
 	DDRB = 0x01;
+	//Turn off all LEDs
+	PORTB = 0xFF;
 	
 	//Initialize display
 	lcd_init(LCD_DISP_ON);
@@ -43,8 +49,8 @@ int main(void){
 	//Output initial text
 	lcd_puts("Count: 0");
     
-    aufgabe1();
-    //aufgabe2();
+    //aufgabe1();
+    aufgabe2();
 }
 
 void aufgabe1(void){
@@ -77,47 +83,39 @@ void aufgabe1(void){
 }
 
 void aufgabe2(void){
-	while(1){
-		if(!timer_running){
-			//Set the timer running flag
-			timer_running = 1;
-			//Enable Timer 1 Overflow Interrupt
-			TIMSK = (1 << TOIE1);
-			//Set overflow value for 500ms timer
-			//31250 counts at /256 prescaler
-			TCNT1 = 0x85EE; //34286
-			//Start Timer 1 with /256 prescaler
-			TCCR1B = (1 << CS12);
-			//Deactivate Timer 1 (Check if necessary)
-			TCCR1B = 0;
-			//Clear Timer 1 Overflow flag
-			TIFR &= ~(1 << TOV1);
-		}
-	}
+	//Enable Timer 1 Overflow Interrupt
+	TIMSK = (1 << TOIE1);
+	//Set overflow value for 500ms timer
+	//31250 counts at /256 prescaler
+	TCNT1 = 0x85ED; //34285
+	//Start Timer 1 with /256 prescaler
+	TCCR1B = (1 << CS12);
 }
 
 //Interrupt 0 Service Routine
 //IR0_vect instead?
 ISR(INT0_vect){
 	//Set the "Switch pressed" flag
-	sw2_flag = 1;
+	//sw2_flag = 1;
 	//Or count up directly
-	//count++;
+	count++;
 }
 
 //Interrupt 1 Service Routine
 ISR(INT1_vect){
 	//Set the "Switch pressed" flag
-	sw3_flag = 1;
+	//sw3_flag = 1;
 	//Or count down directly
-	//count--;
+	count--;
 }
 
 ISR(TIMER1_OVF_vect){
 	//Toggle LED 0 each time the ISR is called
 	PORTB ^= (1 << 0);
-	//Reset the timer running flag
-	timer_running = 0;
+	//Load Init value into Timer
+	TCNT1 = 0x85ED; //34285
+	/*TODO: Check if this keeps the Timer running
+			at correct speed */
 }
 
 /*
@@ -127,7 +125,7 @@ a)
 Interrupts können nur durch andere Interrupts mit einer höheren Priorität
 unterbrochen werden, ansonsten wird zuerst die ISR abgearbeitet und danach
 mit dem nächsten Interrupt weitergemacht. Wenn in der ISR lange Berechnungen
-ablaufen, kann es dazu führen, dass wichtige Signale verzögert wargenommen
+ablaufen, kann es dazu führen, dass wichtige Signale verzögert wahrgenommen
 werden. Dies kann umgangen werden, indem man nur "Flags" in den ISRs setzt,
 und in der Main loop den Status der Flags abfragt.
 
