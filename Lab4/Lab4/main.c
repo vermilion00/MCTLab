@@ -3,7 +3,7 @@
 	#define F_CPU 16000000UL
 #endif
 
-#include <xc.h>
+//#include <xc.h>
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -17,7 +17,7 @@ uint8_t flag = 0;
 //Active time of the PWM cycle in ms
 float duty_cycle = 1;
 //Set if the PWM output is high
-uint8_t pwm_active = 1;
+uint8_t pwm_active = 0;
 //Set if a timer is running
 uint8_t timer_running = 0;
 //Set if long duty cycle is used for A1
@@ -25,12 +25,10 @@ uint8_t long_duty_cycle = 0;
 
 int main(void)
 {
-	//Set Pin D5 to Output
-	DDRD = 0x10;
+	//Set Pin D5 to Output, D2^3 as input
+	DDRD = 0b11110000;
 	
-	//Enable all interrupts
-	/*TODO: Check if this enables all interrupts or just
-	allows for them to happen (Probably 2)*/
+	//Enable interrupts
 	sei();
 	//Sw2 = 5% duty cycle, Sw3 = 7,5% duty cycle
 	//Enable Interrupt 0 and 1
@@ -42,9 +40,9 @@ int main(void)
 	MCUCR |= (1 << ISC11);
 	MCUCR &= ~(1 << ISC10);
 	
-	aufgabe1();
+	//aufgabe1();
 	//aufgabe2();
-	//aufgabe3();
+	aufgabe3();
 }
 
 //Simple delay PWM
@@ -83,32 +81,30 @@ void aufgabe2(void){
 	
 	/*TODO: DO more in the ISR? */
 	while(1){
-		if(pwm_active && !timer_running){
+		if(!pwm_active && !timer_running){
 			//Load the active time length into the CCR
-			/*TODO: Are floats allowed here? */
-			ICR1 = 250.0 * duty_cycle - 1;
+			//250 counts per ms with /64 prescaler
+			ICR1 = 250 * duty_cycle - 1;
 			//Activate Pin D5
 			PORTD |= (1 << 5);
 			//Reset the active phase flag
-			pwm_active = 0;
+			pwm_active = 1;
 			//Set the timer running flag
 			timer_running = 1;
 		}
-		if(!pwm_active && !timer_running){
+		if(pwm_active && !timer_running){
 			//Load the timer value into the CC register
-			//250 counts per ms with /64 prescaler
-			ICR1 = 250 * (20.0 - duty_cycle) - 1;
+			ICR1 = 250 * (20 - duty_cycle) - 1;
 			//Deactivate Pin D5
 			PORTD &= ~(1 << 5);
 			//Set the active phase flag
-			pwm_active = 1;
+			pwm_active = 0;
 			//Set the timer running flag
 			timer_running = 1;
 		}  
 	}
 }
 
-/*TODO: Check if COMPA is correct */
 ISR(TIMER1_COMPA_vect){
 	//Reset the timer running flag
 	timer_running = 0;
@@ -125,20 +121,19 @@ void aufgabe3(void){
 	while(1){
 		//Load the first register with the high phase length
 		OCR1A = (duty_cycle * 250) - 1;
-		//Load the second register with the low phase length
-		/*TODO: Check if this needs the full 20 ms or 20 ms - duty cycle*/
+		//Load the second register with the full length
 		ICR1 = (20 * 250) - 1;
 	}
 }
 
 ISR(INT0_vect){
-	//Set the active delay to 1 ms = 5%
+	//Set the phase length to 1 ms = 5%
 	duty_cycle = 1;
 	long_duty_cycle = 0;
 }
 
 ISR(INT1_vect){
-	// Set the active delay to 1,5 ms = 7,5%
+	// Set the active phase length to 1,5 ms = 7,5%
 	duty_cycle = 1.5;
 	long_duty_cycle = 1;
 }
@@ -148,7 +143,8 @@ Fragen:
 
 a)
 1. ist einfach und schnell zu programmieren und eignet sich daher für simple Anwendungen.
-2. ist etwas komplizierter, lässt aber den Prozessor für andere Anwendungen frei.
+2. ist etwas komplizierter, lässt aber den Prozessor für andere Anwendungen frei, wenn
+   das Programm entsprechend geschrieben wird.
 3. ist für PWM spezifisch sehr einfach und effektiv. Außer im esotherischen Fall, dass
    außer dem PWM-Signal der selbe Timer noch für eine andere Funktion verwendet werden
    muss, sehe ich keinen Grund, 2. zu verwenden.
